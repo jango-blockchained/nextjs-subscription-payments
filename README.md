@@ -17,7 +17,7 @@ The all-in-one starter kit for high-performance SaaS applications.
 
 ## Architecture
 
-![Architecture diagram](./public/architecture_diagram.svg)
+![Architecture diagram](./public/architecture_diagram.png)
 
 ## Step-by-step setup
 
@@ -29,27 +29,33 @@ When deploying this template, the sequence of steps is important. Follow the ste
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnextjs-subscription-payments&env=NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,STRIPE_SECRET_KEY&envDescription=Enter%20your%20Stripe%20API%20keys.&envLink=https%3A%2F%2Fdashboard.stripe.com%2Fapikeys&project-name=nextjs-subscription-payments&repository-name=nextjs-subscription-payments&integration-ids=oac_VqOgBHqhEoFTPzGkPd7L0iH6&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnextjs-subscription-payments%2Ftree%2Fmain)
 
-The Vercel Deployment will create a new repository with this template on your GitHub account and guide your through a new Supabase project creation. The [Supabase Vercel Deploy Integration](https://vercel.com/integrations/supabase-v2) will set up the necessary Supabase environment variables and run the [SQL migrations](./supabase/migrations/20230530034630_init.sql) to set up the Database schema on your account. You can inspect the created tables in your project's [Table editor](https://app.supabase.com/project/_/editor).
+The Vercel Deployment will create a new repository with this template on your GitHub account and guide you through a new Supabase project creation. The [Supabase Vercel Deploy Integration](https://vercel.com/integrations/supabase) will set up the necessary Supabase environment variables and run the [SQL migrations](./supabase/migrations/20230530034630_init.sql) to set up the Database schema on your account. You can inspect the created tables in your project's [Table editor](https://app.supabase.com/project/_/editor).
 
 Should the automatic setup fail, please [create a Supabase account](https://app.supabase.com/projects), and a new project if needed. In your project, navigate to the [SQL editor](https://app.supabase.com/project/_/sql) and select the "Stripe Subscriptions" starter template from the Quick start section.
 
 ### Configure Auth
 
+Follow [this guide](https://supabase.com/docs/guides/auth/social-login/auth-github) to set up an OAuth app with GitHub and configure Supabase to use it as an auth provider.
+
 In your Supabase project, navigate to [auth > URL configuration](https://app.supabase.com/project/_/auth/url-configuration) and set your main production URL (e.g. https://your-deployment-url.vercel.app) as the site url.
 
 Next, in your Vercel deployment settings, add a new **Production** environment variable called `NEXT_PUBLIC_SITE_URL` and set it to the same URL. Make sure to deselect preview and development environments to make sure that preview branches and local development work correctly.
 
-#### [Optional] - Set up redirect wildcards for deploy previews
+#### [Optional] - Set up redirect wildcards for deploy previews (not needed if you installed via the Deploy Button)
 
-For auth redirects (email confirmations, magic links, OAuth providers) to work correctly in deploy previews, navigate to the [auth settings](https://app.supabase.com/project/_/auth/url-configuration) and add the following wildcard URL to "Redirect URLs": `https://*-username.vercel.app/**`. You can read more about redirect wildcard patterns in the [docs](https://supabase.com/docs/guides/auth#redirect-urls-and-wildcards).
+If you've deployed this template via the "Deploy to Vercel" button above, you can skip this step. The Supabase Vercel Integration will have set redirect wildcards for you. You can check this by going to your Supabase [auth settings](https://app.supabase.com/project/_/auth/url-configuration) and you should see a list of redirects under "Redirect URLs".
 
-#### [Optional] - Set up OAuth providers
+Otherwise, for auth redirects (email confirmations, magic links, OAuth providers) to work correctly in deploy previews, navigate to the [auth settings](https://app.supabase.com/project/_/auth/url-configuration) and add the following wildcard URL to "Redirect URLs": `https://*-username.vercel.app/**`. You can read more about redirect wildcard patterns in the [docs](https://supabase.com/docs/guides/auth#redirect-urls-and-wildcards).
 
-You can use third-party login providers like GitHub or Google. Refer to the [docs](https://supabase.io/docs/guides/auth#third-party-logins) to learn how to configure these. Once configured, you can add them to the `provider` array of the [`Auth` component](./app/signin/AuthUI.tsx) page.
+If you've deployed this template via the "Deploy to Vercel" button above, you can skip this step. The Supabase Vercel Integration will have run database migrations for you. You can check this by going to [the Table Editor for your Supabase project](https://supabase.com/dashboard/project/_/editor), and confirming there are tables with seed data.
+
+Otherwise, navigate to the [SQL Editor](https://supabase.com/dashboard/project/_/sql/new), paste the contents of [the Supabase `schema.sql` file](./schema.sql), and click RUN to initialize the database.
 
 #### [Maybe Optional] - Set up Supabase environment variables (not needed if you installed via the Deploy Button)
 
-If you've deployed this template via the "Deploy to Vercel" button above, you can skip this step. Otherwise navigate to the [API settings](https://app.supabase.com/project/_/settings/api) and paste them into the Vercel deployment interface. Copy project API keys and paste into the `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` fields, and copy the project URL and paste to Vercel as `NEXT_PUBLIC_SUPABASE_URL`.
+If you've deployed this template via the "Deploy to Vercel" button above, you can skip this step. The Supabase Vercel Integration will have set your environment variables for you. You can check this by going to your Vercel project settings, and clicking on 'Environment variables', there will be a list of environment variables with the Supabase icon displayed next to them.
+
+Otherwise navigate to the [API settings](https://app.supabase.com/project/_/settings/api) and paste them into the Vercel deployment interface. Copy project API keys and paste into the `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` fields, and copy the project URL and paste to Vercel as `NEXT_PUBLIC_SUPABASE_URL`.
 
 Congrats, this completes the Supabase setup, almost there!
 
@@ -59,7 +65,7 @@ Next, we'll need to configure [Stripe](https://stripe.com/) to handle test payme
 
 For the following steps, make sure you have the ["Test Mode" toggle](https://stripe.com/docs/testing) switched on.
 
-#### Create a webhook
+#### Create a Webhook
 
 We need to create a webhook in the `Developers` section of Stripe. Pictured in the architecture diagram above, this webhook is the piece that connects Stripe to your Vercel Serverless Functions.
 
@@ -67,7 +73,7 @@ We need to create a webhook in the `Developers` section of Stripe. Pictured in t
 1. Enter your production deployment URL followed by `/api/webhooks` for the endpoint URL. (e.g. `https://your-deployment-url.vercel.app/api/webhooks`)
 1. Click `Select events` under the `Select events to listen to` heading.
 1. Click `Select all events` in the `Select events to send` section.
-1. Copy `Signing secret` as we'll need that in the next step.
+1. Copy `Signing secret` as we'll need that in the next step (e.g `whsec_xxx`) (/!\ be careful not to copy the webook id we_xxxx).
 1. In addition to the `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` and the `STRIPE_SECRET_KEY` we've set earlier during deployment, we need to add the webhook secret as `STRIPE_WEBHOOK_SECRET` env var.
 
 #### Redeploy with new env vars
@@ -111,45 +117,125 @@ I know, that was quite a lot to get through, but it's worth it. You're now ready
 
 If you haven't already done so, clone your Github repository to your local machine.
 
-Next, use the [Vercel CLI](https://vercel.com/download) to link your project:
+### Install dependencies
+
+Ensure you have [pnpm](https://pnpm.io/installation) installed and run:
 
 ```bash
-vercel login
-vercel link
+pnpm install
 ```
 
-### Setting up the env vars locally
-
-Use the Vercel CLI to download the development env vars:
+Next, use the [Vercel CLI](https://vercel.com/docs/cli) to link your project:
 
 ```bash
-vercel env pull .env.local
+pnpm dlx vercel login
+pnpm dlx vercel link
 ```
 
-Running this command will create a new `.env.local` file in your project folder. For security purposes, you will need to set the `SUPABASE_SERVICE_ROLE_KEY` manually from your [Supabase dashboard](https://app.supabase.io/) (`Settings > API`).
+`pnpm dlx` runs a package from the registry, without installing it as a dependency. Alternatively, you can install these packages globally, and drop the `pnpm dlx` part.
+
+If you don't intend to use a local Supabase instance for development and testing, you can use the Vercel CLI to download the development env vars:
+
+```bash
+pnpm dlx vercel env pull .env.local
+```
+
+Running this command will create a new `.env.local` file in your project folder. For security purposes, you will need to set the `SUPABASE_SERVICE_ROLE_KEY` manually from your [Supabase dashboard](https://app.supabase.io/) (`Settings > API`). If you are not using a local Supabase instance, you should also change the `--local` flag to `--linked' or '--project-id <string>' in the `supabase:generate-types` script in `package.json`.(see -> [https://supabase.com/docs/reference/cli/supabase-gen-types-typescript])
+
+### Local development with Supabase
+
+It's highly recommended to use a local Supabase instance for development and testing. We have provided a set of custom commands for this in `package.json`.
+
+First, you will need to install [Docker](https://www.docker.com/get-started/). You should also copy or rename:
+
+- `.env.local.example` -> `.env.local`
+- `.env.example` -> `.env`
+
+Next, run the following command to start a local Supabase instance and run the migrations to set up the database schema:
+
+```bash
+pnpm supabase:start
+```
+
+The terminal output will provide you with URLs to access the different services within the Supabase stack. The Supabase Studio is where you can make changes to your local database instance.
+
+Copy the value for the `service_role_key` and paste it as the value for the `SUPABASE_SERVICE_ROLE_KEY` in your `.env.local` file.
+
+You can print out these URLs at any time with the following command:
+
+```bash
+pnpm supabase:status
+```
+
+To link your local Supabase instance to your project, run the following command, navigate to the Supabase project you created above, and enter your database password.
+
+```bash
+pnpm supabase:link
+```
+
+If you need to reset your database password, head over to [your database settings](https://supabase.com/dashboard/project/_/settings/database) and click "Reset database password", and this time copy it across to a password manager! 😄
+
+🚧 Warning: This links our Local Development instance to the project we are using for `production`. Currently, it only has test records, but once it has customer data, we recommend using [Branching](https://supabase.com/docs/guides/platform/branching) or manually creating a separate `preview` or `staging` environment, to ensure your customer's data is not used locally, and schema changes/migrations can be thoroughly tested before shipping to `production`.
+
+Once you've linked your project, you can pull down any schema changes you made in your remote database with:
+
+```bash
+pnpm supabase:pull
+```
+
+You can seed your local database with any data you added in your remote database with:
+
+```bash
+pnpm supabase:generate-seed
+pnpm supabase:reset
+```
+
+🚧 Warning: this is seeding data from the `production` database. Currently, this only contains test data, but we recommend using [Branching](https://supabase.com/docs/guides/platform/branching) or manually setting up a `preview` or `staging` environment once this contains real customer data.
+
+You can make changes to the database schema in your local Supabase Studio and run the following command to generate TypeScript types to match your schema:
+
+```bash
+pnpm supabase:generate-types
+```
+
+You can also automatically generate a migration file with all the changes you've made to your local database schema with the following command:
+
+```bash
+pnpm supabase:generate-migration
+```
+
+And push those changes to your remote database with:
+
+```bash
+pnpm supabase:push
+```
+
+Remember to test your changes thoroughly in your `local` and `staging` or `preview` environments before deploying them to `production`!
 
 ### Use the Stripe CLI to test webhooks
 
-[Install the Stripe CLI](https://stripe.com/docs/stripe-cli) and [link your Stripe account](https://stripe.com/docs/stripe-cli#login-account).
+Use the [Stripe CLI](https://stripe.com/docs/stripe-cli) to [login to your Stripe account](https://stripe.com/docs/stripe-cli#login-account):
+
+```bash
+pnpm stripe:login
+```
+
+This will print a URL to navigate to in your browser and provide access to your Stripe account.
 
 Next, start local webhook forwarding:
 
 ```bash
-stripe listen --forward-to=localhost:3000/api/webhooks
+pnpm stripe:listen
 ```
 
-Running this Stripe command will print a webhook secret (such as, `whsec_***`) to the console. Set `STRIPE_WEBHOOK_SECRET` to this value in your `.env.local` file.
+Running this Stripe command will print a webhook secret (such as, `whsec_***`) to the console. Set `STRIPE_WEBHOOK_SECRET` to this value in your `.env.local` file. If you haven't already, you should also set `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` and `STRIPE_SECRET_KEY` in your `.env.local` file using the **test mode**(!) keys from your Stripe dashboard.
 
-### Install dependencies and run the Next.js client
+### Run the Next.js client
 
-In a separate terminal, run the following commands to install dependencies and start the development server:
+In a separate terminal, run the following command to start the development server:
 
 ```bash
-npm install
-npm run dev
-# or
-yarn
-yarn dev
+pnpm dev
 ```
 
 Note that webhook forwarding and the development server must be running concurrently in two separate terminals for the application to work correctly.
@@ -171,7 +257,3 @@ To run the project in live mode and process payments with Stripe, switch Stripe 
 Afterward, you will need to rebuild your production deployment for the changes to take effect. Within your project Dashboard, navigate to the "Deployments" tab, select the most recent deployment, click the overflow menu button (next to the "Visit" button) and select "Redeploy" (do NOT enable the "Use existing Build Cache" option).
 
 To verify you are running in production mode, test checking out with the [Stripe test card](https://stripe.com/docs/testing). The test card should not work.
-
-## A note on reliability
-
-This template mirrors completed Stripe transactions to the Supabase database. This means that if the Supabase database is unavailable, the Stripe transaction will still succeed, but the Supabase database will not be updated, and the application will pass an error code back to Stripe. [By default](https://stripe.com/docs/webhooks/best-practices), Stripe will retry sending its response to the webhook for up to three days, or until the database update succeeds. This means that the Stripe transaction will eventually be reflected in the Supabase database as long as the database comes back online within three days. You may want to implement a process to automatically reconcile the Supabase database with Stripe in case of a prolonged outage.
